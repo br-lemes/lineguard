@@ -1,0 +1,109 @@
+package fixes
+
+func add(a, b int) int { return a + b }
+func use(value ...any) {}
+
+func returnValues() (int, int) {
+	return 1, 2 // want "return statement must be on a single line"
+}
+
+func returnLiteral() ([]int, int) {
+	return []int{1}, 2 // want "invalid multi-line return spacing"
+}
+
+func returnThreeValues() (int, int, int) {
+	return 1, 2, 3 // want "return statement must be on a single line"
+}
+
+func returnMixedValues() (int, []int) {
+	return 1, []int{2, 3} // want "invalid multi-line return spacing"
+}
+
+func returnFunctionLiteral() func() int {
+	return func() int {
+		return 1
+	}
+}
+
+func callFunctionLiteral() {
+	use(func() {
+		use(1)
+	})
+}
+
+func callCompositeLiteral() {
+	use([]string{
+		"this is a deliberately long element to require multiline layout",
+		"another deliberately long element for the same reason",
+	})
+}
+
+func callRawString() {
+	use(`first line
+second line
+third line`)
+}
+
+type query struct {
+	field nestedField
+}
+type nestedField struct {
+	value string
+}
+
+func (query) where(string) query { return query{} }
+func (query) order(string) query { return query{} }
+func (query) limit(string) query { return query{} }
+
+func fixChainMultipleEdits() {
+	db := query{}
+	db.where("id").order("name").limit("10") // want "chained methods must be on a single line"
+	_ = db
+	db.where("id"). /* preserve */
+				order("name") // want "chained methods must be on a single line"
+
+	var root query
+	_ = root.field. /* preserve */ // want "chained selections must be on a single line"
+				value
+}
+
+func fixCalls() {
+	use(1) // want "function call must be on a single line"
+	use(1, 2) // want "function call must be on a single line"
+}
+
+func fixAssignments() {
+	var x int
+	y := 1 // want "invalid line break after operator :="
+	x = 1  // want "invalid line break after operator ="
+	_ = x
+	_ = y
+}
+
+func fixAssignmentCommas() {
+	a, b := 1, 2 // want "invalid line break after assignment comma"
+	_, _ = a, b
+
+	var c, d = 1, 2 // want "invalid line break after assignment comma"
+	_, _ = c, d
+
+	var g, h = 7, 8 // want "invalid line break after assignment comma"
+	_, _ = g, h
+
+	p, q := 1, 2 // want "invalid line break after assignment comma"
+	_, _ = p, q
+
+	r, s := 3, 4 // want "invalid line break after assignment comma"
+	_, _ = r, s
+}
+
+func fixBinaryOperators() {
+	_ = 1 + 2 // want "invalid line break after binary operator"
+	_ = 10 * 20 // want "invalid line break after binary operator"
+}
+
+func fixComments() {
+	value := /* preserve this comment */
+		1 // want "invalid line break after operator :="
+	_ = value
+}

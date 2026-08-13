@@ -1,0 +1,6 @@
+version: v2.12.2
+
+plugins:
+  - module: github.com/br-lemes/lineguard
+    import: github.com/br-lemes/lineguard/plugin
+    path: .

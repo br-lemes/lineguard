@@ -1,0 +1,19 @@
+{
+	"ignorePaths": ["go.mod", "go.sum"],
+	"language": "en",
+	"words": [
+		"analysistest",
+		"coverprofile",
+		"Elts",
+		"Fset",
+		"GOARCH",
+		"gocover",
+		"gofmt",
+		"golangci",
+		"lemes",
+		"lineguard",
+		"Reportf",
+		"singlechecker",
+		"Tabwidth"
+	]
+}

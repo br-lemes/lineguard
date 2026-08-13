@@ -1,0 +1,12 @@
+version: "2"
+
+linters:
+  enable:
+    - lineguard
+
+  settings:
+    custom:
+      lineguard:
+        type: module
+        description: Enforces project line-break style rules
+        original-url: github.com/br-lemes/lineguard

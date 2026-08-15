@@ -241,6 +241,13 @@ func compositeLiteralRules() {
 		Age:  25,
 	}
 
+	// The compact form fits within 80 columns, but gofmt's vertical alignment
+	// pushes the first entry over 80.
+	_ = map[string][]string{
+		"short":             []string{"12345678", "12345678", "12345678", "12345678"}, // want "literal exceeds 80 columns and must be split across multiple lines"
+		"a-much-longer-key": []string{"one"},
+	}
+
 	longSliceValid := []string{
 		"this_is_a_very_long_string_that_helps_us_exceed_the_eighty_characters_limit_1",
 		"this_is_a_very_long_string_that_helps_us_exceed_the_eighty_characters_limit_2",

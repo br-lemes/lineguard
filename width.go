@@ -88,6 +88,21 @@ func (c *checker) indentWidth(pos token.Pos) int {
 	return visualWidth(lineText[:col])
 }
 
+func (c *checker) compactPrefixWidth(pos token.Pos) int {
+	p := c.pass.Fset.Position(pos)
+	lines := c.sourceLines(p.Filename)
+	if lines == nil || p.Line-1 >= len(lines) {
+		//+gocover:ignore:block unavailable source lines
+		return 0
+	}
+	prefix := lines[p.Line-1][:p.Column-1]
+	trimmed := strings.TrimRight(prefix, " \t")
+	if len(trimmed) < len(prefix) && strings.HasSuffix(trimmed, ":") {
+		return visualWidth(trimmed) + 1
+	}
+	return visualWidth(prefix)
+}
+
 func runeLen(s string) int {
 	n := 0
 	for range s {

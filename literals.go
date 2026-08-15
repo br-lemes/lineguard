@@ -34,7 +34,7 @@ func (c *checker) checkCompositeLit(lit *ast.CompositeLit) {
 	case !multiLine && width > maxLineWidth:
 		c.reportf(lit.Lbrace, "literal exceeds 80 columns and must be split across multiple lines")
 	case multiLine && width <= maxLineWidth:
-		if !matchSiblings {
+		if !matchSiblings && c.alignedWidth(lit) <= maxLineWidth {
 			c.reportf(lit.Lbrace, "literal fits within 80 columns and must be on a single line")
 		}
 	case multiLine && width > maxLineWidth:
@@ -259,6 +259,15 @@ func singleLineString(expr ast.Expr) string {
 }
 
 func (c *checker) reconstructedWidth(startPos token.Pos, expr ast.Expr) int {
-	prefix := c.indentWidth(startPos)
-	return prefix + runeLen(singleLineString(expr))
+	exprWidth := runeLen(singleLineString(expr))
+	compact := c.compactPrefixWidth(startPos) + exprWidth
+	aligned := c.indentWidth(startPos) + exprWidth
+	if aligned > compact {
+		return aligned
+	}
+	return compact
+}
+
+func (c *checker) alignedWidth(lit *ast.CompositeLit) int {
+	return c.indentWidth(lit.Pos()) + runeLen(singleLineString(lit))
 }

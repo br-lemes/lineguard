@@ -72,22 +72,6 @@ func (c *checker) sourceLines(filename string) []string {
 	return lines
 }
 
-func (c *checker) indentWidth(pos token.Pos) int {
-	p := c.pass.Fset.Position(pos)
-	lines := c.sourceLines(p.Filename)
-	if lines == nil || p.Line-1 >= len(lines) {
-		//+gocover:ignore:block impossible missing source
-		return 0
-	}
-	lineText := lines[p.Line-1]
-	col := p.Column - 1
-	if col > len(lineText) {
-		//+gocover:ignore:block rare column beyond line
-		col = len(lineText)
-	}
-	return visualWidth(lineText[:col])
-}
-
 func (c *checker) compactPrefixWidth(pos token.Pos) int {
 	p := c.pass.Fset.Position(pos)
 	lines := c.sourceLines(p.Filename)

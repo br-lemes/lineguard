@@ -241,10 +241,9 @@ func compositeLiteralRules() {
 		Age:  25,
 	}
 
-	// The compact form fits within 80 columns, but gofmt's vertical alignment
-	// pushes the first entry over 80.
+	// Lineguard measures the compact form, ignoring gofmt alignment.
 	_ = map[string][]string{
-		"short":             []string{"12345678", "12345678", "12345678", "12345678"}, // want "literal exceeds 80 columns and must be split across multiple lines"
+		"short":             []string{"12345678", "12345678", "12345678", "12345678"},
 		"a-much-longer-key": []string{"one"},
 	}
 

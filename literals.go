@@ -27,6 +27,10 @@ func (c *checker) checkCompositeLit(lit *ast.CompositeLit) {
 	width := c.reconstructedWidth(lit.Pos(), lit)
 	multiLine := !c.sameLine(lit.Pos(), lit.End())
 	matchSiblings := c.mustMatchMultilineSibling(lit)
+	if multiLine && matchSiblings && !c.validMultiLineLiteral(lit) {
+		c.reportf(lit.Lbrace, "invalid multi-line literal spacing")
+		return
+	}
 
 	switch {
 	case !multiLine && matchSiblings:

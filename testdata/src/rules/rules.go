@@ -273,6 +273,22 @@ type PeerLayout struct {
 }
 
 func compositeSiblingLayoutRules() {
+	siblingSpacing := []struct {
+		name, value string
+		count       int
+	}{
+		{ // want "invalid multi-line literal spacing"
+			name:  "first",
+			value: "first", count: 1,
+		},
+		{
+			name:  "second value with enough text to require multiline layout",
+			value: "second value with enough text to require multiline layout",
+			count: 10,
+		},
+	}
+	_ = siblingSpacing
+
 	peers := []PeerLayout{
 		{
 			Name: "short",

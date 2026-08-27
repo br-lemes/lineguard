@@ -22,8 +22,6 @@ type checker struct {
 	fileLines        map[string][]string
 	fileSources      map[string][]byte
 	compositeParents map[*ast.CompositeLit]*ast.CompositeLit
-	namedStructs     map[*ast.StructType]bool
-	literalStructs   map[*ast.StructType]bool
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -33,8 +31,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		fileLines:        map[string][]string{},
 		fileSources:      map[string][]byte{},
 		compositeParents: map[*ast.CompositeLit]*ast.CompositeLit{},
-		namedStructs:     map[*ast.StructType]bool{},
-		literalStructs:   map[*ast.StructType]bool{},
 	}
 	for _, file := range pass.Files {
 		if ast.IsGenerated(file) {
@@ -42,20 +38,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 		c.checkCommentWidths(file)
 		ast.Inspect(file, func(n ast.Node) bool {
-			spec, isTypeSpec := n.(*ast.TypeSpec)
-			if isTypeSpec {
-				typ, isStructType := spec.Type.(*ast.StructType)
-				if isStructType {
-					c.namedStructs[typ] = true
-				}
-			}
-			lit, isCompositeLit := n.(*ast.CompositeLit)
-			if isCompositeLit {
-				typ := inlineStructType(lit.Type)
-				if typ != nil {
-					c.literalStructs[typ] = true
-				}
-			}
 			parent, ok := n.(*ast.CompositeLit)
 			if !ok {
 				return true
@@ -100,8 +82,6 @@ func (c *checker) visit(n ast.Node) {
 		c.checkSwitchStmt(node)
 	case *ast.TypeSpec:
 		c.checkTypeSpec(node)
-	case *ast.StructType:
-		c.checkStructType(node)
 	case *ast.CompositeLit:
 		c.checkCompositeLit(node)
 	}
@@ -398,29 +378,21 @@ func (c *checker) checkForStmt(f *ast.ForStmt) {
 
 func (c *checker) checkTypeSpec(t *ast.TypeSpec) {
 	switch typ := t.Type.(type) {
+	case *ast.StructType:
+		if len(typ.Fields.List) == 0 {
+			if !c.sameLine(typ.Pos(), typ.End()) {
+				c.reportf(typ.Pos(), "empty type declaration must be on a single line")
+			}
+		} else {
+			if c.sameLine(typ.Pos(), typ.End()) {
+				c.reportf(typ.End(), "type declaration must be multi-line")
+			}
+		}
 	case *ast.InterfaceType:
 		if len(typ.Methods.List) == 0 {
 			if !c.sameLine(typ.Pos(), typ.End()) {
 				c.reportf(typ.Pos(), "empty type declaration must be on a single line")
 			}
 		}
-	}
-}
-
-func (c *checker) checkStructType(typ *ast.StructType) {
-	if len(typ.Fields.List) == 0 {
-		if !c.sameLine(typ.Pos(), typ.End()) {
-			c.reportf(typ.Pos(), "empty type declaration must be on a single line")
-		}
-		return
-	}
-	if c.literalStructs[typ] && !c.namedStructs[typ] && len(typ.Fields.List) == 1 {
-		if !c.sameLine(typ.Pos(), typ.End()) {
-			c.reportf(typ.Pos(), "single-field inline struct type must be on a single line")
-		}
-		return
-	}
-	if c.sameLine(typ.Pos(), typ.End()) {
-		c.reportf(typ.End(), "non-empty struct type must be on multiple lines")
 	}
 }

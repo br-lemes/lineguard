@@ -195,7 +195,7 @@ type ValidUser struct {
 	Age  int
 }
 
-type InvalidUser struct{ Name string } // want "non-empty struct type must be on multiple lines"
+type InvalidUser struct{ Name string } // want "type declaration must be multi-line"
 
 type ValidReader interface {
 	Read(p []byte) (n int, err error)
@@ -273,22 +273,6 @@ type PeerLayout struct {
 }
 
 func compositeSiblingLayoutRules() {
-	siblingSpacing := []struct {
-		name, value string
-		count       int
-	}{
-		{ // want "invalid multi-line literal spacing"
-			name:  "first",
-			value: "first", count: 1,
-		},
-		{
-			name:  "second value with enough text to require multiline layout",
-			value: "second value with enough text to require multiline layout",
-			count: 10,
-		},
-	}
-	_ = siblingSpacing
-
 	peers := []PeerLayout{
 		{
 			Name: "short",
@@ -308,31 +292,29 @@ func compositeSiblingLayoutRules() {
 		},
 	}
 	_ = otherPeers
-}
 
-func anonymousStructLiteralRules() {
-	var anonymousValue struct {
-		field int
-	}
-	_ = anonymousValue
-	var compactAnonymousValue struct{ field int } // want "non-empty struct type must be on multiple lines"
-	_ = compactAnonymousValue
+	fixes := []struct{ Message string }{{
+		Message: "this_message_is_long_enough_to_make_the_nested_literal_exceed_eighty_columns",
+	}}
+	_ = fixes
 
-	validCompact := []struct{ Name string }{{Name: "short"}}
-	_ = validCompact
-
-	_ = []struct{ Name string }{{Name: "first"}, {Name: "second"}}
-
-	_ = []struct { // want "single-field inline struct type must be on a single line"
-		Name string
-	}{ // want "literal fits within 80 columns and must be on a single line"
-		{Name: "short"},
-	}
-	_ = []struct { // want "single-field inline struct type must be on a single line"
-		Name string
+	invalidFixes := []struct {
+		Message string
 	}{ // want "single-element array or slice must keep its element on the opening line"
-		{Name: "this_name_is_long_enough_to_make_the_composite_literal_exceed_eighty_columns"}, // want "literal exceeds 80 columns and must be split across multiple lines"
+		{
+			Message: "this_message_is_long_enough_to_make_the_nested_literal_exceed_eighty_columns",
+		},
 	}
+	_ = invalidFixes
+
+	compactPointer := &[]struct {
+		Name  string
+		Count int
+		Index int
+	}{
+		{Name: "example", Count: 5, Index: 0},
+	}
+	_ = compactPointer
 }
 
 type Query struct{}

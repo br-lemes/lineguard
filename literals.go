@@ -25,15 +25,8 @@ func (c *checker) checkCompositeLit(lit *ast.CompositeLit) {
 	}
 
 	width := c.reconstructedWidth(lit.Pos(), lit)
-	if inlineStructType(lit.Type) != nil {
-		width = c.compositeValueWidth(lit)
-	}
-	multiLine := !c.sameLine(lit.Lbrace, lit.Rbrace)
+	multiLine := !c.sameLine(lit.Pos(), lit.End())
 	matchSiblings := c.mustMatchMultilineSibling(lit)
-	if multiLine && !c.validMultiLineLiteral(lit) {
-		c.reportf(lit.Lbrace, "invalid multi-line literal spacing")
-		return
-	}
 
 	switch {
 	case !multiLine && matchSiblings:
@@ -45,29 +38,10 @@ func (c *checker) checkCompositeLit(lit *ast.CompositeLit) {
 			c.reportf(lit.Lbrace, "literal fits within 80 columns and must be on a single line")
 		}
 	case multiLine && width > maxLineWidth:
-		return
-	}
-}
-
-func inlineStructType(expr ast.Expr) *ast.StructType {
-	switch typ := expr.(type) {
-	case *ast.StructType:
-		return typ
-	case *ast.ArrayType:
-		return inlineStructType(typ.Elt)
-	}
-	return nil
-}
-
-func (c *checker) compositeValueWidth(lit *ast.CompositeLit) int {
-	width := c.compactPrefixWidth(lit.Lbrace) + 2
-	for i, elt := range lit.Elts {
-		if i > 0 {
-			width++
+		if !c.validMultiLineLiteral(lit) {
+			c.reportf(lit.Lbrace, "invalid multi-line literal spacing")
 		}
-		width += runeLen(singleLineString(elt))
 	}
-	return width
 }
 
 func (c *checker) isSingleElementArrayOrSlice(lit *ast.CompositeLit) bool {
